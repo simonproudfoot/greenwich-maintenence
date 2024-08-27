@@ -4,15 +4,16 @@ require_once(ABSPATH . 'wp-admin/includes/plugin.php');
 require_once(ABSPATH . 'wp-admin/includes/file.php');
 require_once(ABSPATH . 'wp-admin/includes/misc.php');
 
+
 function greenwich_wp_connect_and_sync()
 {
-    $api_key = sanitize_text_field($_POST['greenwich-wp_key']);
-    $database_id = sanitize_text_field($_POST['greenwich-wp_database_id']);
-    $api_version = sanitize_text_field($_POST['greenwich-wp_api_version']);
+    $api_key = sanitize_text_field($_POST['greenwich_wp_key']);
+    $database_id = sanitize_text_field($_POST['greenwich_wp_database_id']);
+    $api_version = sanitize_text_field($_POST['greenwich_wp_api_version']);
 
-    update_option('greenwich-wp_key', $api_key);
-    update_option('greenwich-wp_database_id', $database_id);
-    update_option('greenwich-wp_api_version', $api_version);
+    update_option('greenwich_wp_key', $api_key);
+    update_option('greenwich_wp_database_id', $database_id);
+    update_option('greenwich_wp_api_version', $api_version);
 
     if (empty($api_key) || empty($database_id) || empty($api_version)) {
         echo '<div class="notice notice-error"><p>Please fill in all the required fields.</p></div>';
@@ -20,14 +21,14 @@ function greenwich_wp_connect_and_sync()
     }
 
     // Test connection
-    $connection = greenwich-wp_test_connection();
+    $connection = greenwich_wp_test_connection();
     if (!$connection['success']) {
         echo '<div class="notice notice-error"><p>' . esc_html($connection) . '</p></div>';
         return;
     }
 
     // Sync site data
-    $sync_result = greenwich-wp_sync_site_data();
+    $sync_result = greenwich_wp_sync_site_data();
 
 
     if ($sync_result['success']) {
@@ -37,11 +38,11 @@ function greenwich_wp_connect_and_sync()
     }
 }
 
-function greenwich-wp_test_connection()
+function greenwich_wp_test_connection()
 {
-    $api_key = get_option('greenwich-wp_key');
-    $database_id = get_option('greenwich-wp_database_id');
-    $api_version = get_option('greenwich-wp_api_version');
+    $api_key = get_option('greenwich_wp_key');
+    $database_id = get_option('greenwich_wp_database_id');
+    $api_version = get_option('greenwich_wp_api_version');
 
     $url = "https://api.notion.com/v1/databases/{$database_id}";
 
@@ -67,7 +68,7 @@ function greenwich-wp_test_connection()
 }
 
 
-function greenwich-wp_get_theme_screenshot_url()
+function greenwich_wp_get_theme_screenshot_url()
 {
     $theme = wp_get_theme();
     $screenshot = $theme->get_screenshot();
@@ -75,36 +76,39 @@ function greenwich-wp_get_theme_screenshot_url()
 }
 
 
-function greenwich-wp_sync_site_data()
+function greenwich_wp_sync_site_data()
 {
-    $api_key = get_option('greenwich-wp_key');
-    $database_id = get_option('greenwich-wp_database_id');
-    $api_version = get_option('greenwich-wp_api_version');
+    $api_key = get_option('greenwich_wp_key');
+    $database_id = get_option('greenwich_wp_database_id');
+    $api_version = get_option('greenwich_wp_api_version');
 
     // Ensure database schema is up to date
-    $schema_result = greenwich-wp_ensure_database_schema();
+    $schema_result = greenwich_wp_ensure_database_schema();
     if (!$schema_result['success']) {
         return array('success' => false, 'message' => 'Schema update failed: ' . $schema_result['message'], 'debug' => $schema_result);
     }
 
     $site_url = get_site_url();
-    $site_title = get_bloginfo('name');
+    $domain_name = preg_replace('#^https?://#', '', rtrim($site_url, '/'));
 
     // Check if the site already exists in the database
-    $existing_page = greenwich-wp_find_existing_page($site_title);
+    //$existing_page = greenwich_wp_find_existing_page($domain_name);
+    $existing_page = greenwich_wp_find_existing_page_by_domain($domain_name);
+
     $healthData = get_site_health_data();
-    $screenshot_url = greenwich-wp_get_theme_screenshot_url();
+    $screenshot_url = greenwich_wp_get_theme_screenshot_url();
 
     // Data to be sent to Notion
     $page_data = array(
-        'Name' => array('title' => array(array('text' => array('content' => $site_title)))),
+        'Domain' => array('title' => array(array('text' => array('content' => $domain_name)))),
         'Site Health Score' => array('number' => $healthData->calculated->score / 100),
         'Site Health Status' => array('select' => array('name' => $healthData->calculated->status)),
+        'Maintenence' => array('select' => array('name' => 'Yes')),
         'Site URL' => array('url' => $site_url),
-        'Core Update Available' => array('multi_select' => array(array('name' => greenwich-wp_is_core_update_available() ? 'Yes' : 'No'))),
+        'Core Update Available' => array('multi_select' => array(array('name' => greenwich_wp_is_core_update_available() ? 'Yes' : 'No'))),
         'Critical Issues' => array('number' => $healthData->issues->critical->count),
         'Recommended Improvements' => array('number' => $healthData->issues->recommended->count),
-        'Plugin Updates' => array('number' => greenwich-wp_get_plugin_updates_count()),
+        'Plugin Updates' => array('number' => greenwich_wp_get_plugin_updates_count()),
         'Plugins Last Updated' => array('date' => array('start' => get_last_update())),
         'Last Checked' => array('date' => array('start' => current_time('c'))),
         'PHP Version' => array('rich_text' => array(array('text' => array('content' => phpversion())))),
@@ -162,26 +166,29 @@ function greenwich-wp_sync_site_data()
 }
 
 
-function greenwich-wp_ensure_database_schema()
+function greenwich_wp_ensure_database_schema()
 {
-    $current_schema = greenwich-wp_get_database_schema();
+    $current_schema = greenwich_wp_get_database_schema();
     if ($current_schema === false) {
         return array('success' => false, 'message' => 'Failed to fetch current database schema');
     }
 
     $required_properties = array(
+
+        'Maintenence' => array('select' => array('options' => array(
+            array('name' => 'Yes', 'color' => 'green'),
+        ))),
+
         'Site Health Status' => array('select' => array('options' => array(
             array('name' => 'Good', 'color' => 'green'),
             array('name' => 'Should be improved', 'color' => 'yellow'),
             array('name' => 'Needs improvement', 'color' => 'red')
         ))),
         'Site Health Score' => array('number' => array('format' => 'percent')),
-
         'Core Update Available' => array('multi_select' => array('options' => array(
             array('name' => 'Yes', 'color' => 'red'),
             array('name' => 'No', 'color' => 'green')
         ))),
-
         'Critical Issues' => (object) array('number' => (object) array()),
         'Recommended Improvements' => (object) array('number' => (object) array()),
         'Plugin Updates' => (object) array('number' => (object) array()),
@@ -200,7 +207,7 @@ function greenwich-wp_ensure_database_schema()
     }
 
     if (!empty($properties_to_add)) {
-        return greenwich-wp_update_database_schema($properties_to_add);
+        return greenwich_wp_update_database_schema($properties_to_add);
     }
 
     return array('success' => true, 'message' => 'Database schema is up to date');
@@ -209,11 +216,11 @@ function greenwich-wp_ensure_database_schema()
 
 
 
-function greenwich-wp_get_database_schema()
+function greenwich_wp_get_database_schema()
 {
-    $api_key = get_option('greenwich-wp_key');
-    $database_id = get_option('greenwich-wp_database_id');
-    $api_version = get_option('greenwich-wp_api_version');
+    $api_key = get_option('greenwich_wp_key');
+    $database_id = get_option('greenwich_wp_database_id');
+    $api_version = get_option('greenwich_wp_api_version');
 
     $url = "https://api.notion.com/v1/databases/{$database_id}";
 
@@ -226,7 +233,7 @@ function greenwich-wp_get_database_schema()
     ));
 
     if (is_wp_error($response)) {
-        error_log('greenwich-wp Error: Failed to fetch database schema - ' . $response->get_error_message());
+        error_log('greenwich_wp Error: Failed to fetch database schema - ' . $response->get_error_message());
         return false;
     }
 
@@ -236,15 +243,15 @@ function greenwich-wp_get_database_schema()
     if (isset($data['properties'])) {
         return $data['properties'];
     } else {
-        error_log('greenwich-wp Error: Database schema not found in response - ' . print_r($data, true));
+        error_log('greenwich_wp Error: Database schema not found in response - ' . print_r($data, true));
         return false;
     }
 }
-function greenwich-wp_update_database_schema($properties_to_add)
+function greenwich_wp_update_database_schema($properties_to_add)
 {
-    $api_key = get_option('greenwich-wp_key');
-    $database_id = get_option('greenwich-wp_database_id');
-    $api_version = get_option('greenwich-wp_api_version');
+    $api_key = get_option('greenwich_wp_key');
+    $database_id = get_option('greenwich_wp_database_id');
+    $api_version = get_option('greenwich_wp_api_version');
 
     $url = "https://api.notion.com/v1/databases/{$database_id}";
 
@@ -259,7 +266,7 @@ function greenwich-wp_update_database_schema($properties_to_add)
     ));
 
     if (is_wp_error($response)) {
-        error_log('greenwich-wp Error: ' . $response->get_error_message());
+        error_log('greenwich_wp Error: ' . $response->get_error_message());
         return array('success' => false, 'message' => 'Failed to update schema: ' . $response->get_error_message());
     }
 
@@ -267,7 +274,7 @@ function greenwich-wp_update_database_schema($properties_to_add)
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
 
-    error_log('greenwich-wp Response: ' . print_r($data, true));
+    error_log('greenwich_wp Response: ' . print_r($data, true));
 
     if ($status_code === 200) {
         return array('success' => true, 'message' => 'Schema updated successfully.');
@@ -276,11 +283,11 @@ function greenwich-wp_update_database_schema($properties_to_add)
     }
 }
 
-function greenwich-wp_find_existing_page($domain)
+function greenwich_wp_find_existing_page($domain)
 {
-    $api_key = get_option('greenwich-wp_key');
-    $database_id = get_option('greenwich-wp_database_id');
-    $api_version = get_option('greenwich-wp_api_version');
+    $api_key = get_option('greenwich_wp_key');
+    $database_id = get_option('greenwich_wp_database_id');
+    $api_version = get_option('greenwich_wp_api_version');
 
     $url = "https://api.notion.com/v1/databases/{$database_id}/query";
 
@@ -314,7 +321,7 @@ function greenwich-wp_find_existing_page($domain)
     return null;
 }
 
-function greenwich-wp_get_plugin_updates_count()
+function greenwich_wp_get_plugin_updates_count()
 {
     if (!function_exists('get_plugins')) {
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -327,7 +334,7 @@ function greenwich-wp_get_plugin_updates_count()
 }
 
 
-function greenwich-wp_is_core_update_available()
+function greenwich_wp_is_core_update_available()
 {
     if (!function_exists('get_core_updates')) {
         require_once ABSPATH . 'wp-admin/includes/update.php';
@@ -338,23 +345,62 @@ function greenwich-wp_is_core_update_available()
 
 
 
-// Modify the greenwich-wp_manual_sync_handler function
-function greenwich-wp_manual_sync_handler()
+// Modify the greenwich_wp_manual_sync_handler function
+function greenwich_wp_manual_sync_handler()
 {
-    check_ajax_referer('greenwich-wp_manual_sync', 'security');
+    check_ajax_referer('greenwich_wp_manual_sync', 'security');
 
     if (!current_user_can('manage_options')) {
         wp_send_json_error('You do not have permission to perform this action.');
     }
 
     // Log the manual sync as an update
-    greenwich-wp_log_update_time();
+    greenwich_wp_log_update_time();
 
-    $result = greenwich-wp_sync_site_data();
+    $result = greenwich_wp_sync_site_data();
 
     if ($result['success']) {
         wp_send_json_success($result['message']);
     } else {
         wp_send_json_error($result['message']);
     }
+}
+
+
+function greenwich_wp_find_existing_page_by_domain($domain_name)
+{
+    $api_key = get_option('greenwich_wp_key');
+    $database_id = get_option('greenwich_wp_database_id');
+    $api_version = get_option('greenwich_wp_api_version');
+
+    $url = "https://api.notion.com/v1/databases/{$database_id}/query";
+
+    $response = wp_remote_post($url, array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $api_key,
+            'Notion-Version' => $api_version,
+            'Content-Type' => 'application/json',
+        ),
+        'body' => json_encode(array(
+            'filter' => array(
+                'property' => 'Domain',
+                'title' => array(
+                    'equals' => $domain_name
+                )
+            )
+        ))
+    ));
+
+    if (is_wp_error($response)) {
+        return false;
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    if (isset($data['results']) && !empty($data['results'])) {
+        return $data['results'][0]['id'];
+    }
+
+    return false;
 }

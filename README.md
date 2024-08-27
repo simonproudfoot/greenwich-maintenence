@@ -1,2 +1,2 @@
-# greenwich-wp
-# greenwich-maintenence
+# greenwich_wp
+# greenwich_maintenence

@@ -1,60 +1,60 @@
-/* greenwich-wp Admin Styles */
+/* greenwich_wp Admin Styles */
 
-.greenwich-wp-admin {
+.greenwich_wp-admin {
 
     color: #000;
     font-size: 16px;
 }
 
-.greenwich-wp-container {
+.greenwich_wp-container {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
 }
 
-.greenwich-wp-admin h1 {
+.greenwich_wp-admin h1 {
     font-size: 24px;
     margin-bottom: 20px;
 }
 
-.greenwich-wp-admin .notice {
+.greenwich_wp-admin .notice {
     margin: 20px 0;
     background-color: #f8f8f8;
     border-left-color: #000;
 }
 
-.greenwich-wp-admin .card {
+.greenwich_wp-admin .card {
     background: #fff;
     border: 1px solid #000;
     margin-top: 20px;
     padding: 20px;
 }
 
-.greenwich-wp-admin .card h2 {
+.greenwich_wp-admin .card h2 {
     font-size: 20px;
     margin-top: 0;
     border-bottom: 1px solid #000;
     padding-bottom: 10px;
 }
 
-.greenwich-wp-admin .form-group {
+.greenwich_wp-admin .form-group {
     margin-bottom: 20px;
 }
 
-.greenwich-wp-admin label {
+.greenwich_wp-admin label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
 }
 
-.greenwich-wp-admin input[type="text"] {
+.greenwich_wp-admin input[type="text"] {
     width: 100%;
     padding: 8px;
     font-size: 16px;
     border: 1px solid #000;
 }
 
-.greenwich-wp-admin .button-primary {
+.greenwich_wp-admin .button-primary {
     background-color: #000;
     border-color: #000;
     color: #fff;
@@ -63,86 +63,86 @@
     height: auto;
 }
 
-.greenwich-wp-admin .button-primary:hover,
-.greenwich-wp-admin .button-primary:focus {
+.greenwich_wp-admin .button-primary:hover,
+.greenwich_wp-admin .button-primary:focus {
     background-color: #333;
     border-color: #333;
 }
 
-.greenwich-wp-admin #greenwich-wp_manual_sync {
+.greenwich_wp-admin #greenwich_wp_manual_sync {
     margin-right: 10px;
 }
 
-.greenwich-wp-admin .spinner {
+.greenwich_wp-admin .spinner {
     float: none;
     margin-top: 4px;
 }
 
-.greenwich-wp-admin #sync_status {
+.greenwich_wp-admin #sync_status {
     font-weight: bold;
 }
 
-.greenwich-wp-admin #sync_status.success {
+.greenwich_wp-admin #sync_status.success {
     color: #006400;
 }
 
-.greenwich-wp-admin #sync_status.error {
+.greenwich_wp-admin #sync_status.error {
     color: #8b0000;
 }
 
-.greenwich-wp-admin #last_sync_time {
+.greenwich_wp-admin #last_sync_time {
     font-style: italic;
 }
 
 
 
 /* Hide update nag */
-.greenwich-wp-admin .update-nag {
+.greenwich_wp-admin .update-nag {
     display: none !important;
 }
 
 /* Adjust WordPress admin bar */
-.greenwich-wp-admin #wpadminbar {
+.greenwich_wp-admin #wpadminbar {
     display: none;
 }
 
-.greenwich-wp-admin #wpbody {
+.greenwich_wp-admin #wpbody {
     padding-top: 0;
 }
 
 /* Hide admin footer */
-.greenwich-wp-admin #wpfooter {
+.greenwich_wp-admin #wpfooter {
     display: none;
 }
 
 /* Hide error messages */
-.greenwich-wp-admin .error {
+.greenwich_wp-admin .error {
     display: none !important;
 }
 
 /* Style for the message container */
-#greenwich-wp-message {
+#greenwich_wp-message {
     margin-top: 20px;
     padding: 10px;
     border-radius: 4px;
 }
 
-#greenwich-wp-message.notice-success {
+#greenwich_wp-message.notice-success {
     background-color: #e7f5ea;
     border-left-color: #006400;
 }
 
-#greenwich-wp-message.notice-error {
+#greenwich_wp-message.notice-error {
     background-color: #f8d7da;
     border-left-color: #8b0000;
 }
 
 /* Style for the spinner */
-#greenwich-wp-spinner {
+#greenwich_wp-spinner {
     margin-top: 10px;
 }
 
-.greenwich-wp-logo {
+.greenwich_wp-logo {
     max-width: 200px;
     height: auto;
     margin-bottom: 20px;
