@@ -4,7 +4,7 @@ require_once(ABSPATH . 'wp-admin/includes/plugin.php');
 require_once(ABSPATH . 'wp-admin/includes/file.php');
 require_once(ABSPATH . 'wp-admin/includes/misc.php');
 
-function greenwich-wp_connect_and_sync()
+function greenwich_wp_connect_and_sync()
 {
     $api_key = sanitize_text_field($_POST['greenwich-wp_key']);
     $database_id = sanitize_text_field($_POST['greenwich-wp_database_id']);

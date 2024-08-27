@@ -93,7 +93,7 @@ function greenwich-wp_options_page()
                 $spinner.css('visibility', 'visible');
                 $message.hide().removeClass('notice-success notice-error');
 
-                var data = $form.serialize() + '&action=greenwich-wp_connect_and_sync';
+                var data = $form.serialize() + '&action=greenwich_wp_connect_and_sync';
 
                 $.post(ajaxurl, data, function(response) {
                         console.log('AJAX Response:', response);
@@ -148,7 +148,7 @@ function greenwich-wp_ajax_connect_and_sync()
         wp_send_json_error(array('message' => 'Connection failed: ' . $connection_result['message']));
     }
 }
-add_action('wp_ajax_greenwich-wp_connect_and_sync', 'greenwich-wp_ajax_connect_and_sync');
+add_action('wp_ajax_greenwich_wp_connect_and_sync', 'greenwich-wp_ajax_connect_and_sync');
 
 // Enqueue admin styles
 function greenwich-wp_enqueue_admin_styles($hook)
